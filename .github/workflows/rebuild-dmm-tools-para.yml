@@ -1,0 +1,57 @@
+name: Rebuild binary
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "crates/**"
+      - "scripts/**"
+      - ".github/workflows/rebuild-dmm-tools-para.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Build Linux binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build dmm-tools
+        env:
+          RUSTFLAGS: -A warnings
+        run: cargo build --locked --release -p dmm-tools-cli --bin dmm-tools
+
+      - name: Prepare dmm-tools-para artifact
+        run: |
+          mkdir -p dist
+          cp target/release/dmm-tools dist/dmm-tools-para
+          chmod +x dist/dmm-tools-para
+
+      - name: Upload dmm-tools-para
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmm-tools-para
+          path: dist/dmm-tools-para
+          if-no-files-found: error
