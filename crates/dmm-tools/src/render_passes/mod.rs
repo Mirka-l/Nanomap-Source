@@ -634,6 +634,9 @@ impl RenderPass for BandaStationMods {
         } else if atom.istype("/turf/simulated/mineral/random/high_chance/") {
             output.push(Atom::from(objtree.expect("/turf/simulated/mineral")));
             return false;
+        } else if atom.istype("/turf/simulated/mineral/random/low_chance/") {
+            output.push(Atom::from(objtree.expect("/turf/simulated/mineral")));
+            return false;
             // Make all mineral turfs look the same
         } else if atom.istype("/turf/closed/mineral/") {
             output.push(Atom::from(objtree.expect("/turf/closed/mineral/minimap")));
